@@ -7,6 +7,8 @@ import Courses from './Courses';
 import Tasks from './Tasks';
 import AIPlan from './AIPlan';
 
+import './index.css';
+
 export function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard'>('landing');
   

@@ -1,75 +1,47 @@
-# React + TypeScript + Vite
+# Planora - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Technologies Used:
+- Library: React with TypeScript
+- styling: Tailwind CSS
+- Build Tool: Vite
+- Icons: Custom SVG assets from Figma
 
-Currently, two official plugins are available:
+## project files structure:
+public/                  # Icons and image
+src/
+├── AIPlan.tsx           # AI-powered study schedule generator section
+├── App.tsx              # Main routing and global state controller
+├── Courses.tsx          # Course management and curriculum view
+├── Dashboard.tsx        # Main student overview dashboard
+├── index.css            # Global styles
+├── landingPage.tsx      # Introductory landing page
+├── login.tsx            # Authentication and login view
+├── main.tsx             # Application entry point
+├── Sidebar.tsx          # Navigation sidebar component
+└── Tasks.tsx            # Task tracking and assignment management
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## App Flow:
+1- Landing & Authentication: This is the startup page(LandingPage.tsx); it provides a brief introduction to the application and includes a "Log In" button that leads to the authentication page(Login.tsx), as well as a "Get Started" button that takes the user directly to the dashboard page(Dashboard.tsx), the user must log in first to interact with the application.
 
-## React Compiler
+2- Dashboard: When users log in, they are redirected directly to the dashboard page via the (App.tsx) file.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+3- Sidebar Navigation: A persistent sidebar (Sidebar.tsx) allows users to seamlessly switch between different views:
 
-## Expanding the ESLint configuration
+- Dashboard: High-level academic overview (Dashboard.tsx).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Courses: Manage enrolled courses, view instructors, and add new courses (Courses.tsx).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Tasks: Track active and pending academic tasks (Tasks.tsx).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- AI Study Plan: Configure daily study hours and view generated optimized schedules (AIPlan.tsx).
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## How to install:
 
-```
+1. Clone the repository:
+git clone https://github.com/IEEE-ZSB-GP-T4/Frontend.git
+cd Frontend 
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies:
+npm install
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+3. npm run dev

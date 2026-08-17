@@ -1,3 +1,39 @@
+/* src/index.css (أو Global CSS) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+
+:root {
+    /* Planora Brand Colors & Backgrounds */
+    --bg-main: #f8f9ff;         
+    --bg-card: #ffffff;            
+    --sidebar-bg: #f8f9ff;        
+    --border-color: #c3c6d7;
+    
+    /* Brand Primary & Accents */
+    --primary-blue: #0A369D;
+    --hover-blue: #004ac6;
+    --accent-blue: #0053db;
+    --text-main: #0b1c30;
+    --text-muted: #434655;
+    
+    /* Fonts */
+    --font-geist: 'Geist', Helvetica, sans-serif;
+    --font-inter: 'Inter', Helvetica, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-inter);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
