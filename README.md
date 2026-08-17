@@ -7,6 +7,7 @@
 - Icons: Custom SVG assets from Figma
 
 ## project files structure:
+```text
 public/                  # Icons and image
 src/
 ├── AIPlan.tsx           # AI-powered study schedule generator section
@@ -38,7 +39,7 @@ src/
 ## How to install:
 
 1. Clone the repository:
-git clone https://github.com/IEEE-ZSB-GP-T4/Frontend.git
+git clone [https://github.com/IEEE-ZSB-GP-T4/Frontend.git](https://github.com/IEEE-ZSB-GP-T4/Frontend.git)
 cd Frontend 
 
 2. Install dependencies:
