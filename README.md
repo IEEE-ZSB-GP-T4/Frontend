@@ -7,7 +7,7 @@
 - Icons: Custom SVG assets from Figma
 
 ## project files structure:
-```text
+```
 public/                  # Icons and image
 src/
 ├── AIPlan.tsx           # AI-powered study schedule generator section
@@ -20,6 +20,7 @@ src/
 ├── main.tsx             # Application entry point
 ├── Sidebar.tsx          # Navigation sidebar component
 └── Tasks.tsx            # Task tracking and assignment management
+```
 
 ## App Flow:
 1- Landing & Authentication: This is the startup page(LandingPage.tsx); it provides a brief introduction to the application and includes a "Log In" button that leads to the authentication page(Login.tsx), as well as a "Get Started" button that takes the user directly to the dashboard page(Dashboard.tsx), the user must log in first to interact with the application.
