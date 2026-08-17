@@ -1,23 +1,44 @@
-import { type FormEvent, useState } from "react";
-
-
-interface LogInProps {
-  onBackToLanding: () => void;
-}
+import { useState } from "react";
+import API from './axios';
 
 interface LogInProps {
   onBackToLanding: () => void;
   onLoginSuccess: () => void; 
+  switchToRegister: () => void; 
+  
 }
 
-export default function LogIn({ onBackToLanding, onLoginSuccess }: LogInProps){
+export default function LogIn({ onBackToLanding, onLoginSuccess, switchToRegister }: LogInProps){
   const [rememberMe, setRememberMe] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmissionStatus("Login form submitted successfully.");
-    onLoginSuccess(); 
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await API.post('/login', {
+        email,
+        password,
+      });
+
+      const token = response.data.token;
+
+      if (token) {
+        // Save Token at localStorage
+        localStorage.setItem('token', token);
+        
+        onLoginSuccess(); 
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,9 +80,16 @@ export default function LogIn({ onBackToLanding, onLoginSuccess }: LogInProps){
       </section>
 
       <form
-        className="flex ml-[445px] w-[470px] h-[260px] relative mt-9 flex-col items-start gap-6"
-        onSubmit={handleSubmit}
+        className="flex ml-[445px] w-[470px] relative mt-9 flex-col items-start gap-6"
+        onSubmit={handleLogin}
       >
+       
+        {error && (
+          <div className="w-full p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <div className="flex flex-col items-start relative self-stretch w-full flex-[0_0_auto]">
           <label htmlFor="email" className="sr-only">
             Email Address
@@ -72,10 +100,13 @@ export default function LogIn({ onBackToLanding, onLoginSuccess }: LogInProps){
             type="email"
             autoComplete="email"
             required={true}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email Address"
             className="self-stretch w-full h-[50px] rounded-lg relative border border-solid border-[#cfdee7] px-4 [font-family:'Geist-Regular',Helvetica] font-normal text-sm tracking-[0.14px] leading-5 text-[#434655] placeholder:text-[#434655ad] focus:border-[#0a369d]"
           />
         </div>
+        
         <div className="flex flex-col items-start relative self-stretch w-full flex-[0_0_auto]">
           <label htmlFor="password" className="sr-only">
             Password
@@ -86,10 +117,13 @@ export default function LogIn({ onBackToLanding, onLoginSuccess }: LogInProps){
             type="password"
             autoComplete="current-password"
             required={true}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             className="self-stretch w-full h-[50px] rounded-lg relative border border-solid border-[#cfdee7] px-4 [font-family:'Geist-Regular',Helvetica] font-normal text-sm tracking-[0.14px] leading-5 text-[#434655] placeholder:text-[#434655ad] focus:border-[#0a369d]"
           />
         </div>
+
         <div className="flex flex-col items-start pt-2 pb-4 px-0 relative self-stretch w-full flex-[0_0_auto]">
           <div className="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
             <label className="inline-flex items-center gap-2 relative flex-[0_0_auto] cursor-pointer">
@@ -126,35 +160,35 @@ export default function LogIn({ onBackToLanding, onLoginSuccess }: LogInProps){
             </a>
           </div>
         </div>
+
         <button
           type="submit"
-          className="all-unset box-border flex items-center justify-center gap-2 px-0 py-3 relative self-stretch w-full flex-[0_0_auto] bg-[#0a369d] rounded-lg shadow-[0px_4px_12px_#0f172a0d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0a369d]/30 focus:ring-offset-2"
+          disabled={loading}
+          className="all-unset box-border flex items-center justify-center gap-2 px-0 py-3 relative self-stretch w-full flex-[0_0_auto] bg-[#0a369d] rounded-lg shadow-[0px_4px_12px_#0f172a0d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0a369d]/30 focus:ring-offset-2 disabled:opacity-50"
         >
           <span className="justify-center text-white text-center relative flex items-center w-fit mt-[-1.00px] [font-family:'Geist-Regular',Helvetica] font-normal text-sm tracking-[0.14px] leading-5 whitespace-nowrap">
-            Login
+            {loading ? "Logging in..." : "Login"}
           </span>
           <span className="inline-flex flex-col items-center relative flex-[0_0_auto]">
-            <img className="relative w-3 h-3" src="/arrow.svg" />
+            <img className="relative w-3 h-3" src="/arrow.svg" alt="arrow" />
           </span>
         </button>
-        <p className="sr-only" role="status" aria-live="polite">
-          {submissionStatus}
-        </p>
       </form>
 
-      <footer className="ml-[453px] w-[448px] h-6 mt-[190px] flex">
+      <footer className="ml-[453px] w-[448px] h-6 mt-[120px] flex">
         <div className="mt-0.5 w-[208.22px] ml-[119.9px] flex gap-[2.2px]">
           <span className="mt-px w-[155.85px] h-[18px] [font-family:'Plus_Jakarta_Sans-Medium',Helvetica] font-medium text-[#434655ad] text-sm text-center tracking-[0] leading-5 whitespace-nowrap">
             Don&apos;t have an account?
           </span>
-          <a
-            href="#sign-up"
-            className="mt-px w-[51px] h-5 [font-family:'Plus_Jakarta_Sans-Bold',Helvetica] font-bold text-[#0a369dad] text-sm text-center tracking-[0] leading-5 whitespace-nowrap focus:outline-none focus:underline"
-          >
-            Sign up
-          </a>
+          <button
+    type="button"
+    onClick={switchToRegister}
+    className="mt-px w-[51px] h-5 [font-family:'Plus_Jakarta_Sans-Bold',Helvetica] font-bold text-[#0a369dad] text-sm text-center tracking-[0] leading-5 whitespace-nowrap focus:outline-none focus:underline cursor-pointer bg-transparent border-none"
+  >
+    Sign up
+  </button>
         </div>
       </footer>
     </main>
   );
-};
+}

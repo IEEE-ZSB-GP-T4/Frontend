@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import LandingPage from './landingPage';
-import LogIn  from './login';
+import LogIn from './login';
 import Dashboard from './Dashboard';
 import Sidebar from './Sidebar'; 
 import Courses from './Courses'; 
 import Tasks from './Tasks';
 import AIPlan from './AIPlan';
+import Register from './Register';
 
 import './index.css';
 
 export function App() {
-  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard'>('landing');
+
+  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'register' | 'dashboard'>(
+    localStorage.getItem('token') ? 'dashboard' : 'landing'
+  );
   
   const [activeTab, setActiveTab] = useState('Dashboard');
 
@@ -32,14 +36,14 @@ export function App() {
   return (
     <div>
       {currentView === 'landing' && (
-          <LandingPage 
-             onNavigateToLogin={() => setCurrentView('login')} 
-              onGetStarted={() => {
-                setCurrentView('dashboard');
-                setActiveTab('Dashboard');
-              }} 
-            />
-          )}
+        <LandingPage 
+          onNavigateToLogin={() => setCurrentView('login')} 
+          onGetStarted={() => {
+            setCurrentView('dashboard');
+            setActiveTab('Dashboard');
+          }} 
+        />
+      )}
 
       {currentView === 'login' && (
         <LogIn 
@@ -48,23 +52,37 @@ export function App() {
             setCurrentView('dashboard');
             setActiveTab('Dashboard'); 
           }}
+          switchToRegister={() => setCurrentView('register')} 
+        />
+      )}
+
+      {currentView === 'register' && (
+        <Register 
+          onRegisterSuccess={() => {
+            setCurrentView('dashboard');
+            setActiveTab('Dashboard');
+          }}
+          switchToLogin={() => setCurrentView('login')} 
         />
       )}
 
       {currentView === 'dashboard' && (
-        <div className="w-full h-screen bg-[#f8f9ff] text-[#434655] flex overflow-hidden select-none relative">
-          
+        <div className="flex h-screen w-full overflow-hidden bg-[#f8f9ff]">
+          <div className="w-64 flex-shrink-0">
           <Sidebar 
             currentView={activeTab} 
             onSelectView={(tabName) => setActiveTab(tabName)}
-            onLogout={() => setCurrentView('landing')}
+            onLogout={() => {
+              localStorage.removeItem('token'); 
+              setCurrentView('landing');
+            }}
             isAIPlanView={activeTab === 'AI Study Plan'}
           />
+          </div>
 
-          <main className="flex-1 h-full overflow-auto ml-64 flex flex-col">
+          <main className="flex-1 h-full overflow-auto flex flex-col">
             {renderDashboardContent()}
           </main>
-
         </div>
       )}
     </div>

@@ -1,4 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import API from './axios';
+
+type ScheduleItem = {
+  time: string;
+  type: string;
+  title?: string;
+  description: string;
+};
 
 export default function AIStudyPlanSection() {
   const [targetHours, setTargetHours] = useState(4);
@@ -6,6 +14,53 @@ export default function AIStudyPlanSection() {
     "Data Structures (CS101)",
     "Calculus II (MAT202)",
   ]);
+  const [optimizationFocus, setOptimizationFocus] = useState("Balanced Concept Review");
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([
+    {
+      time: "9:00 AM — FOCUS BLOCK",
+      type: "focus",
+      title: "Data Structures: Review Algorithms",
+      description: "Focus on sorting algorithms (Merge Sort, Quick Sort). Practice implementing them in Python."
+    },
+    {
+      time: "11:00 AM — REST",
+      type: "rest",
+      description: "Take a 30-minute restorative break. Step away from the screen."
+    },
+    {
+      time: "11:30 AM — DEEP WORK",
+      type: "focus",
+      title: "Calculus II: Linear Algebra Set",
+      description: "Complete problems 1-15 from Chapter 4. Review matrix multiplication rules if stuck."
+    },
+    {
+      time: "1:30 PM — LUNCH",
+      type: "lunch",
+      description: ""
+    },
+    {
+      time: "2:30 PM — REVIEW",
+      type: "focus",
+      title: "Spaced Repetition: Flashcards",
+      description: "Quick 30-minute review of active flashcards across all priority subjects."
+    }
+  ]);
+  const [loading, setLoading] = useState(false);
+
+  //Backend 
+  useEffect(() => {
+    const fetchStudyPlan = async () => {
+      try {
+        const response = await API.get('/study-plan');
+        if (response.data && response.data.schedule) {
+          setScheduleItems(response.data.schedule);
+        }
+      } catch (error) {
+        console.error("Failed to fetch study plan", error);
+      }
+    };
+    fetchStudyPlan();
+  }, []);
 
   const toggleCourse = (course: string) => {
     setSelectedCourses((prev) =>
@@ -15,12 +70,35 @@ export default function AIStudyPlanSection() {
     );
   };
 
-  const handleGenerateSchedule = () => {
-    alert("AI Schedule generated successfully!");
+  // Generated AI
+  const handleGenerateSchedule = async () => {
+    setLoading(true);
+    try {
+      const response = await API.post('/study-plan', {
+        target_hours: targetHours,
+        priority_courses: selectedCourses,
+        optimization_focus: optimizationFocus,
+      });
+
+      if (response.data && response.data.schedule) {
+        setScheduleItems(response.data.schedule);
+      }
+      alert("AI Schedule generated successfully!");
+    } catch (error) {
+      console.error("Error generating schedule:", error);
+      alert("Failed to generate AI schedule.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveToCalendar = () => {
-    alert("Study plan saved to calendar successfully!");
+  const handleSaveToCalendar = async () => {
+    try {
+  
+      alert("Study plan saved to calendar successfully!");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -41,7 +119,7 @@ export default function AIStudyPlanSection() {
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-3">
           
           {/* Parameters Sidebar */}
-          <div className="flex flex-col items-start gap-6 rounded-xl border border-[#c3c6d7] bg-white p-6 lg:col-span-1">
+          <div className="flex flex-col items-start gap-6 rounded-xl border border-[#c3c6d7] bg-white p-6 lg:col-span-1 shadow-sm">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d3e4fe] text-[#004ac6]">
                 <img src="/parameter.svg" className="w-5 h-5" alt="" />
@@ -110,7 +188,11 @@ export default function AIStudyPlanSection() {
               <span className="font-['Geist-Medium',Helvetica] text-sm text-[#0b1c30]">
                 Optimization Focus
               </span>
-              <select className="w-full rounded-lg border border-[#c3c6d7] bg-[#f8f9ff] px-3 py-2.5 font-['Inter-Regular',Helvetica] text-sm text-[#0b1c30] focus:border-[#004ac6] focus:outline-none">
+              <select 
+                value={optimizationFocus}
+                onChange={(e) => setOptimizationFocus(e.target.value)}
+                className="w-full rounded-lg border border-[#c3c6d7] bg-[#f8f9ff] px-3 py-2.5 font-['Inter-Regular',Helvetica] text-sm text-[#0b1c30] focus:border-[#004ac6] focus:outline-none"
+              >
                 <option>Balanced Concept Review</option>
                 <option>Exam Cram & Practice</option>
                 <option>Deep Technical Focus</option>
@@ -121,15 +203,16 @@ export default function AIStudyPlanSection() {
             <button
               type="button"
               onClick={handleGenerateSchedule}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0A369D] px-4 py-3 font-['Geist-Medium',Helvetica] text-sm font-medium text-white transition-colors hover:bg-[#004ac6] focus:outline-none focus:ring-2 focus:ring-[#0053db] focus:ring-offset-2"
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0A369D] px-4 py-3 font-['Geist-Medium',Helvetica] text-sm font-medium text-white transition-colors hover:bg-[#004ac6] focus:outline-none focus:ring-2 focus:ring-[#0053db] focus:ring-offset-2 disabled:opacity-50"
             > 
               <img src="/generateAi.svg" className="h-5 w-5 brightness-0 invert" alt="" />
-              <span>Generate AI Schedule</span>
+              <span>{loading ? "Generating..." : "Generate AI Schedule"}</span>
             </button>
           </div>
 
           {/* Today's Optimized Plan Section */}
-          <div className="flex flex-col items-start gap-6 rounded-xl border border-[#c3c6d7] bg-white p-6 lg:col-span-2">
+          <div className="flex flex-col items-start gap-6 rounded-xl border border-[#c3c6d7] bg-white p-6 lg:col-span-2 shadow-sm">
             <div className="flex w-full items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d3e4fe] text-[#004ac6]">
@@ -151,76 +234,26 @@ export default function AIStudyPlanSection() {
 
             {/* Schedule Timeline */}
             <div className="flex w-full flex-col gap-6 border-l-2 border-[#d3e4fe] pl-4 ml-2">
-              
-              {/* Timeline Item 1 */}
-              <div className="flex flex-col items-start gap-2 relative">
-                <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-[#004ac6]" />
-                <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold text-[#004ac6]">
-                  9:00 AM — FOCUS BLOCK
-                </span>
-                <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
-                  <h3 className="m-0 mb-1 font-['Inter-SemiBold',Helvetica] text-base font-semibold text-[#0b1c30]">
-                    Data Structures: Review Algorithms
-                  </h3>
-                  <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
-                    Focus on sorting algorithms (Merge Sort, Quick Sort). Practice implementing them in Python.
-                  </p>
+              {scheduleItems.map((item, index) => (
+                <div key={index} className="flex flex-col items-start gap-2 relative">
+                  <span className={`absolute -left-[23px] top-1 h-3 w-3 rounded-full ${item.type === 'rest' ? 'bg-[#626567]' : item.type === 'lunch' ? 'bg-[#e4a11b]' : 'bg-[#004ac6]'}`} />
+                  <span className={`font-['Geist-Medium',Helvetica] text-xs font-semibold ${item.type === 'rest' ? 'text-[#626567]' : item.type === 'lunch' ? 'text-[#e4a11b]' : 'text-[#004ac6]'}`}>
+                    {item.time}
+                  </span>
+                  {item.description && (
+                    <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
+                      {item.title && (
+                        <h3 className="m-0 mb-1 font-['Inter-SemiBold',Helvetica] text-base font-semibold text-[#0b1c30]">
+                          {item.title}
+                        </h3>
+                      )}
+                      <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
+                        {item.description}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Timeline Item 2 */}
-              <div className="flex flex-col items-start gap-2 relative">
-                <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-[#626567]" />
-                <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold text-[#626567]">
-                  11:00 AM — REST
-                </span>
-                <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
-                  <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
-                    Take a 30-minute restorative break. Step away from the screen.
-                  </p>
-                </div>
-              </div>
-
-              {/* Timeline Item 3 */}
-              <div className="flex flex-col items-start gap-2 relative">
-                <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-[#004ac6]" />
-                <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold text-[#004ac6]">
-                  11:30 AM — DEEP WORK
-                </span>
-                <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
-                  <h3 className="m-0 mb-1 font-['Inter-SemiBold',Helvetica] text-base font-semibold text-[#0b1c30]">
-                    Calculus II: Linear Algebra Set
-                  </h3>
-                  <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
-                    Complete problems 1-15 from Chapter 4. Review matrix multiplication rules if stuck.
-                  </p>
-                </div>
-              </div>
-
-              {/* Timeline Item 4 */}
-              <div className="flex flex-col items-start gap-2 relative">
-                <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-[#e4a11b]" />
-                <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold text-[#e4a11b]">
-                  1:30 PM — LUNCH
-                </span>
-              </div>
-
-              {/* Timeline Item 5 */}
-              <div className="flex flex-col items-start gap-2 relative">
-                <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-[#004ac6]" />
-                <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold text-[#004ac6]">
-                  2:30 PM — REVIEW
-                </span>
-                <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
-                  <h3 className="m-0 mb-1 font-['Inter-SemiBold',Helvetica] text-base font-semibold text-[#0b1c30]">
-                    Spaced Repetition: Flashcards
-                  </h3>
-                  <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
-                    Quick 30-minute review of active flashcards across all priority subjects.
-                  </p>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
 
