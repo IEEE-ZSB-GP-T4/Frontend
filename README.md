@@ -35,11 +35,11 @@ Frontend/
 ```
 
 ## App Flow:
-1- Landing & Authentication: This is the startup page(`LandingPage.tsx`); it provides a brief introduction to the application and includes a "Log In" button that leads to the authentication page(`Login.tsx`), as well as a "Get Started" button that takes the user directly to the dashboard page(`Dashboard.tsx`), the user must log in first to interact with the application.
+**1- Landing & Authentication:** This is the startup page(`LandingPage.tsx`); it provides a brief introduction to the application and includes a "Log In" button that leads to the authentication page(`Login.tsx`), as well as a "Get Started" button that takes the user directly to the dashboard page(`Dashboard.tsx`), the user must log in first to interact with the application.
 
-2- Dashboard: When users log in, they are redirected directly to the dashboard page via the (`App.tsx`) file.
+**2- Dashboard:** When users log in, they are redirected directly to the dashboard page via the (`App.tsx`) file.
 
-3- Sidebar Navigation: A persistent sidebar (`Sidebar.tsx`) allows users to seamlessly switch between different views:
+**3- Sidebar Navigation:** A persistent sidebar (`Sidebar.tsx`) allows users to seamlessly switch between different views:
 
 - **Dashboard:** High-level academic overview (`Dashboard.tsx`).
 
