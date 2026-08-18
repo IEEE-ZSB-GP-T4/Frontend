@@ -36,7 +36,7 @@ export default function AcademicDashboardSection() {
   const summaryCards = [
     {
       label: "Total Courses",
-      value: dashboardData?.total_courses || "6",
+      value: dashboardData?.total_courses ?? 0,
       icon: (
         <img 
           className="w-5 h-5" 
@@ -48,7 +48,7 @@ export default function AcademicDashboardSection() {
     },
     {
       label: "Pending Tasks",
-      value: dashboardData?.pending_tasks || "12",
+      value: dashboardData?.pending_tasks ?? 0 ,
       icon: (
         <img 
           className="w-5 h-5" 
@@ -60,7 +60,7 @@ export default function AcademicDashboardSection() {
     },
     {
       label: "Study Hours",
-      value: dashboardData?.study_hours || "24.5",
+      value: dashboardData?.study_hours ?? 0,
       detail: "This week",
       icon: (
         <img 
