@@ -5,6 +5,8 @@
 - styling: Tailwind CSS
 - Build Tool: Vite
 - Icons: Custom SVG assets from Figma
+- API Requests: Axios
+- Data Visualization: Plotly
 
 ## project files structure:
 ```
@@ -33,19 +35,21 @@ Frontend/
 ```
 
 ## App Flow:
-1- Landing & Authentication: This is the startup page(LandingPage.tsx); it provides a brief introduction to the application and includes a "Log In" button that leads to the authentication page(Login.tsx), as well as a "Get Started" button that takes the user directly to the dashboard page(Dashboard.tsx), the user must log in first to interact with the application.
+1- Landing & Authentication: This is the startup page(`LandingPage.tsx`); it provides a brief introduction to the application and includes a "Log In" button that leads to the authentication page(`Login.tsx`), as well as a "Get Started" button that takes the user directly to the dashboard page(`Dashboard.tsx`), the user must log in first to interact with the application.
 
-2- Dashboard: When users log in, they are redirected directly to the dashboard page via the (App.tsx) file.
+2- Dashboard: When users log in, they are redirected directly to the dashboard page via the (`App.tsx`) file.
 
-3- Sidebar Navigation: A persistent sidebar (Sidebar.tsx) allows users to seamlessly switch between different views:
+3- Sidebar Navigation: A persistent sidebar (`Sidebar.tsx`) allows users to seamlessly switch between different views:
 
-- Dashboard: High-level academic overview (Dashboard.tsx).
+- **Dashboard:** High-level academic overview (`Dashboard.tsx`).
 
-- Courses: Manage enrolled courses, view instructors, and add new courses (Courses.tsx).
+- **Courses:** Manage enrolled courses, view instructors, and add new courses (`Courses.tsx`).
 
-- Tasks: Track active and pending academic tasks (Tasks.tsx).
+- **Tasks:** Track active and pending academic tasks (`Tasks.tsx`).
 
-- AI Study Plan: Configure daily study hours and view generated optimized schedules (AIPlan.tsx).
+- **AI Study Plan:** Configure daily study hours and view generated optimized schedules (`AIPlan.tsx`).
+
+- **Analytics Dashboard:** Data science analytics and visual charts for performance tracking (`AnalyticsDashboard.tsx`).
 
 ## How to install:
 

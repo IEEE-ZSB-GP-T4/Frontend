@@ -27,7 +27,7 @@ type Task = {
   course_id?: string | number;
   deadline?: string;
   estimated_hours?: number;
-  priority: "High" | "Medium" | "Low" | "high" | "medium" | "low";
+  priority: "High" | "Medium" | "Low" | "high" | "mid" | "low";
   status: "pending" | "completed" | string;
 };
 
@@ -42,7 +42,7 @@ export default function ActiveTasksSection() {
   const [newCourseId, setNewCourseId] = useState(""); // Using course_id instead of free-text
   const [newDueDate, setNewDueDate] = useState("");
   const [newEstimatedHours, setNewEstimatedHours] = useState<number>(1); // Estimated hours required field
-  const [newPriority, setNewPriority] = useState<"high" | "medium" | "low">("medium"); // Lowercase priority by default
+  const [newPriority, setNewPriority] = useState<"high" | "mid" | "low">("mid"); 
 
   // Fetch tasks and courses on component mount
   useEffect(() => {
@@ -82,10 +82,10 @@ export default function ActiveTasksSection() {
       // Send data in the exact structure expected by the backend
       const response = await API.post("/tasks", {
         title: newTitle,
-        course_id: newCourseId,                      // 1. Send the actual course ID
+        course_id: newCourseId,                     // 1. Send the actual course ID
         deadline: newDueDate || "2026-11-01",
         estimated_hours: Number(newEstimatedHours),  // 2. Send estimated hours as a number
-        priority: newPriority.toLowerCase(),         // 3. Send priority in lowercase
+        priority: newPriority,                       // 3. Send priority directly ('high', 'mid', 'low')
       });
 
       setTasks((prevTasks) => [response.data.data, ...prevTasks]);
@@ -95,7 +95,7 @@ export default function ActiveTasksSection() {
       setNewCourseId("");
       setNewDueDate("");
       setNewEstimatedHours(1);
-      setNewPriority("medium");
+      setNewPriority("mid");
       setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to add task", error);
@@ -225,7 +225,7 @@ export default function ActiveTasksSection() {
 
                     <div>
                       <span className="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 capitalize">
-                        {task.priority || "Medium"}
+                        {task.priority === "mid" ? "Medium" : (task.priority || "Medium")}
                       </span>
                     </div>
 
@@ -305,14 +305,14 @@ export default function ActiveTasksSection() {
               />
             </div>
 
-            {/* 3. Priority Selection (Lowercase) */}
+            {/* 3. Priority Selection */}
             <select
               className="border p-2.5 rounded-lg text-sm bg-white"
               value={newPriority}
-              onChange={(e) => setNewPriority(e.target.value as "high" | "medium" | "low")}
+              onChange={(e) => setNewPriority(e.target.value as "high" | "mid" | "low")}
             >
               <option value="high">High</option>
-              <option value="medium">Medium</option>
+              <option value="mid">Medium</option>
               <option value="low">Low</option>
             </select>
 
