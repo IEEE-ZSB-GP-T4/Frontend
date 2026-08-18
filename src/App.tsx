@@ -7,6 +7,7 @@ import Courses from './Courses';
 import Tasks from './Tasks';
 import AIPlan from './AIPlan';
 import Register from './Register';
+import AnalyticsDashboard from './AnalyticsDashboard'; 
 
 import './index.css';
 
@@ -28,6 +29,8 @@ export function App() {
         return <Tasks />;
       case 'AI Study Plan':
         return <AIPlan />;
+      case 'Analytics': 
+        return <AnalyticsDashboard />;
       default:
         return <Dashboard />;
     }

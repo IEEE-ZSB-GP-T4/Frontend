@@ -1,59 +1,40 @@
 import { useState, useEffect } from "react";
 import API from './axios';
 
-type ScheduleItem = {
-  time: string;
-  type: string;
+type Session = {
+  time?: string;
+  type?: string;
   title?: string;
-  description: string;
+  task_title?: string;
+  description?: string;
+  duration?: number | string;
+  hours?: number | string;
+};
+
+type DayPlan = {
+  date?: string;
+  sessions: Session[];
 };
 
 export default function AIStudyPlanSection() {
-  const [targetHours, setTargetHours] = useState(4);
+
+ const [availableHours, setAvailableHours] = useState<number>(4);
+  const [optimizationFocus, setOptimizationFocus] = useState("Balanced Concept Review");
   const [selectedCourses, setSelectedCourses] = useState<string[]>([
     "Data Structures (CS101)",
     "Calculus II (MAT202)",
   ]);
-  const [optimizationFocus, setOptimizationFocus] = useState("Balanced Concept Review");
-  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([
-    {
-      time: "9:00 AM — FOCUS BLOCK",
-      type: "focus",
-      title: "Data Structures: Review Algorithms",
-      description: "Focus on sorting algorithms (Merge Sort, Quick Sort). Practice implementing them in Python."
-    },
-    {
-      time: "11:00 AM — REST",
-      type: "rest",
-      description: "Take a 30-minute restorative break. Step away from the screen."
-    },
-    {
-      time: "11:30 AM — DEEP WORK",
-      type: "focus",
-      title: "Calculus II: Linear Algebra Set",
-      description: "Complete problems 1-15 from Chapter 4. Review matrix multiplication rules if stuck."
-    },
-    {
-      time: "1:30 PM — LUNCH",
-      type: "lunch",
-      description: ""
-    },
-    {
-      time: "2:30 PM — REVIEW",
-      type: "focus",
-      title: "Spaced Repetition: Flashcards",
-      description: "Quick 30-minute review of active flashcards across all priority subjects."
-    }
-  ]);
-  const [loading, setLoading] = useState(false);
+  
+  
+  const [studyPlanDays, setStudyPlanDays] = useState<DayPlan[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  //Backend 
   useEffect(() => {
     const fetchStudyPlan = async () => {
       try {
         const response = await API.get('/study-plan');
-        if (response.data && response.data.schedule) {
-          setScheduleItems(response.data.schedule);
+        if (response.data && response.data.data && response.data.data.generated_plan) {
+          setStudyPlanDays(response.data.data.generated_plan.days || []);
         }
       } catch (error) {
         console.error("Failed to fetch study plan", error);
@@ -70,18 +51,17 @@ export default function AIStudyPlanSection() {
     );
   };
 
-  // Generated AI
   const handleGenerateSchedule = async () => {
     setLoading(true);
     try {
       const response = await API.post('/study-plan', {
-        target_hours: targetHours,
-        priority_courses: selectedCourses,
-        optimization_focus: optimizationFocus,
+        available_hours: Number(availableHours),
+        optimization_focus: optimizationFocus, 
+        selected_courses: selectedCourses,     
       });
 
-      if (response.data && response.data.schedule) {
-        setScheduleItems(response.data.schedule);
+      if (response.data && response.data.data && response.data.data.generated_plan) {
+        setStudyPlanDays(response.data.data.generated_plan.days || []);
       }
       alert("AI Schedule generated successfully!");
     } catch (error) {
@@ -94,7 +74,6 @@ export default function AIStudyPlanSection() {
 
   const handleSaveToCalendar = async () => {
     try {
-  
       alert("Study plan saved to calendar successfully!");
     } catch (error) {
       console.error(error);
@@ -129,18 +108,18 @@ export default function AIStudyPlanSection() {
               </h2>
             </div>
 
-            {/* Target Daily Study Hours */}
+            {/* Target Daily Study Hours (available_hours) */}
             <div className="flex w-full flex-col items-start gap-3">
               <div className="flex w-full justify-between font-['Geist-Medium',Helvetica] text-sm text-[#0b1c30]">
                 <span>Target Daily Study Hours</span>
-                <span className="font-bold text-[#004ac6]">{targetHours}h</span>
+                <span className="font-bold text-[#004ac6]">{availableHours}h</span>
               </div>
               <input
                 type="range"
                 min="1"
                 max="12"
-                value={targetHours}
-                onChange={(e) => setTargetHours(Number(e.target.value))}
+                value={availableHours}
+                onChange={(e) => setAvailableHours(Number(e.target.value))}
                 className="w-full accent-[#004ac6]"
               />
               <div className="flex w-full justify-between font-['Inter-Regular',Helvetica] text-xs text-[#434655]">
@@ -211,7 +190,7 @@ export default function AIStudyPlanSection() {
             </button>
           </div>
 
-          {/* Today's Optimized Plan Section */}
+          {/* Today's Optimized Plan Section (Rebuilt around days[].sessions[]) */}
           <div className="flex flex-col items-start gap-6 rounded-xl border border-[#c3c6d7] bg-white p-6 lg:col-span-2 shadow-sm">
             <div className="flex w-full items-center justify-between">
               <div className="flex items-center gap-2">
@@ -232,28 +211,39 @@ export default function AIStudyPlanSection() {
               </button>
             </div>
 
-            {/* Schedule Timeline */}
-            <div className="flex w-full flex-col gap-6 border-l-2 border-[#d3e4fe] pl-4 ml-2">
-              {scheduleItems.map((item, index) => (
-                <div key={index} className="flex flex-col items-start gap-2 relative">
-                  <span className={`absolute -left-[23px] top-1 h-3 w-3 rounded-full ${item.type === 'rest' ? 'bg-[#626567]' : item.type === 'lunch' ? 'bg-[#e4a11b]' : 'bg-[#004ac6]'}`} />
-                  <span className={`font-['Geist-Medium',Helvetica] text-xs font-semibold ${item.type === 'rest' ? 'text-[#626567]' : item.type === 'lunch' ? 'text-[#e4a11b]' : 'text-[#004ac6]'}`}>
-                    {item.time}
-                  </span>
-                  {item.description && (
-                    <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
-                      {item.title && (
-                        <h3 className="m-0 mb-1 font-['Inter-SemiBold',Helvetica] text-base font-semibold text-[#0b1c30]">
-                          {item.title}
-                        </h3>
-                      )}
-                      <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
-                        {item.description}
-                      </p>
+            {/* Schedule Timeline based on days and sessions */}
+            <div className="flex w-full flex-col gap-6">
+              {studyPlanDays.length === 0 ? (
+                <div className="p-6 text-center text-gray-500 text-sm w-full">No study plan generated yet. Click generate above.</div>
+              ) : (
+                studyPlanDays.map((dayItem, dIndex) => (
+                  <div key={dIndex} className="flex flex-col gap-4 w-full border-b pb-4 last:border-b-0">
+                    <h3 className="font-['Geist-SemiBold',Helvetica] text-lg font-bold text-[#004ac6]">
+                      {dayItem.date || `Day ${dIndex + 1}`}
+                    </h3>
+                    <div className="flex w-full flex-col gap-4 border-l-2 border-[#d3e4fe] pl-4 ml-2">
+                      {dayItem.sessions && dayItem.sessions.map((session, sIndex) => (
+                        <div key={sIndex} className="flex flex-col items-start gap-2 relative">
+                          <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-[#004ac6]" />
+                          <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold text-[#004ac6]">
+                            {session.time || `${session.hours || session.duration || 1} hrs`}
+                          </span>
+                          <div className="w-full rounded-xl border border-[#c3c6d7] bg-[#f8f9ff] p-4">
+                            <h4 className="m-0 mb-1 font-['Inter-SemiBold',Helvetica] text-base font-semibold text-[#0b1c30]">
+                              {session.title || session.task_title || "Study Session"}
+                            </h4>
+                            {session.description && (
+                              <p className="m-0 font-['Inter-Regular',Helvetica] text-sm text-[#434655]">
+                                {session.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

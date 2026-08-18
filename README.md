@@ -8,18 +8,28 @@
 
 ## project files structure:
 ```
-public/                  # Icons and image
-src/
-├── AIPlan.tsx           # AI-powered study schedule generator section
-├── App.tsx              # Main routing and global state controller
-├── Courses.tsx          # Course management and curriculum view
-├── Dashboard.tsx        # Main student overview dashboard
-├── index.css            # Global styles
-├── landingPage.tsx      # Introductory landing page
-├── login.tsx            # Authentication and login view
-├── main.tsx             # Application entry point
-├── Sidebar.tsx          # Navigation sidebar component
-└── Tasks.tsx            # Task tracking and assignment management
+Frontend/
+├── public/                  # Icons and image
+├── src/
+│   ├── AIPlan.tsx             # AI Study Plan generator 
+│   ├── AnalyticsDashboard.tsx # Data Science analytics 
+│   ├── App.tsx                # Main routing & app state controller
+│   ├── axios.ts               # Centralized Axios API configuration
+│   ├── Courses.tsx            # Academic courses management section
+│   ├── Dashboard.tsx          # Main user dashboard interface
+│   ├── index.css              # Global Tailwind CSS styles
+│   ├── landingPage.tsx        # Public landing page
+│   ├── login.tsx              
+│   ├── main.tsx               # React application entry point
+│   ├── Register.tsx           
+│   ├── Sidebar.tsx            # Navigation sidebar component
+│   └── Tasks.tsx              # Task management module
+├── .env                       # Environment variables
+├── .gitignore                 # Git ignored files
+├── eslint.config.js           # ESLint configuration
+├── index.html                 # HTML root template
+├── package.json               # Dependencies & scripts
+└── README.md                  # Project documentation
 ```
 
 ## App Flow:
@@ -40,10 +50,19 @@ src/
 ## How to install:
 
 1. Clone the repository:
-git clone [https://github.com/IEEE-ZSB-GP-T4/Frontend.git](https://github.com/IEEE-ZSB-GP-T4/Frontend.git)
+
+ ```bash
+ git clone [https://github.com/IEEE-ZSB-GP-T4/Frontend.git](https://github.com/IEEE-ZSB-GP-T4/Frontend.git)
 cd Frontend 
+```
+
 
 2. Install dependencies:
+```bash
 npm install
+```
 
-3. npm run dev
+3. Run the development server:
+```bash
+   npm run dev
+```

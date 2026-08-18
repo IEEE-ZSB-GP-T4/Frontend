@@ -24,7 +24,7 @@ export default function CourseManagementSection() {
     const fetchCourses = async () => {
       try {
         const response = await API.get('/courses');
-        setCourses(response.data);
+        setCourses(response.data.data);
       } catch {
         // Handle error
       } finally {
@@ -42,7 +42,7 @@ export default function CourseManagementSection() {
   const handleFetchUpcomingDeadlines = async () => {
     try {
       const response = await API.get("/tasks/upcoming-deadlines");
-      alert(`You have ${response.data.length} tasks due soon!`);
+      alert(`You have ${response.data.data.length} tasks due soon!`);
     } catch (error) {
       console.error("Failed to fetch upcoming deadlines", error);
     }
@@ -58,7 +58,7 @@ export default function CourseManagementSection() {
       });
       
       const response = await API.get('/courses');
-      setCourses(response.data);
+      setCourses(response.data.data);
 
       setIsAddModalOpen(false);
       setNewTitle("");

@@ -25,7 +25,7 @@ export default function Register({ onRegisterSuccess, switchToLogin }: RegisterP
         password_confirmation: passwordConfirmation,
       });
 
-      const token = response.data.token;
+      const token = response.data.data.token;
       
       if (token) {
         localStorage.setItem('token', token);

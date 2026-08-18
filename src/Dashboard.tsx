@@ -12,7 +12,7 @@ export default function AcademicDashboardSection() {
     const fetchDashboard = async () => {
       try {
         const response = await API.get('/dashboard');
-        setDashboardData(response.data);
+        setDashboardData(response.data.data);
         setLoading(false);
       } catch (err: any) {
         console.error("Error fetching dashboard:", err);

@@ -26,7 +26,7 @@ export default function LogIn({ onBackToLanding, onLoginSuccess, switchToRegiste
         password,
       });
 
-      const token = response.data.token;
+      const token = response.data.data.token;
 
       if (token) {
         // Save Token at localStorage

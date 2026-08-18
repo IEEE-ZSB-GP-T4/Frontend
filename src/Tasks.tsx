@@ -1,18 +1,11 @@
-import { useState } from "react";
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import { useState, useEffect } from "react";
+import API from './axios'; 
 
 const fetchUpcomingTasks = async () => {
   try {
     const response = await API.get("/tasks/upcoming-deadlines");
     console.log("Upcoming tasks:", response.data);
-    alert(`You have ${response.data.length} tasks due soon!`); 
+    alert(`You have ${response.data.data.length} tasks due soon!`); 
   } catch (error) {
     console.error("Failed to fetch upcoming deadlines", error);
   }
@@ -24,9 +17,9 @@ type Task = {
   course: string;
   dueDate: string;
   priority: "High" | "Medium" | "Low";
-  priorityBg: string;
-  priorityColor: string;
-  borderColor: string;
+  priorityBg?: string;
+  priorityColor?: string;
+  borderColor?: string;
   completed: boolean;
 };
 
@@ -39,19 +32,18 @@ export default function ActiveTasksSection() {
   const [newDueDate, setNewDueDate] = useState("");
   const [newPriority, setNewPriority] = useState<"High" | "Medium" | "Low">("Medium");
 
-  const fetchTasks = async () => {
-    try {
-      const response = await API.get("/tasks");
-      setTasks(response.data);
-    } catch (error) {
-      console.error("Failed to fetch tasks, using local mock data", error);
-    }
-  };
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await API.get("/tasks");
+        setTasks(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch tasks, using local mock data", error);
+      }
+    };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useState(() => {
     fetchTasks();
-  });
+  }, []);
 
   const handleGenerateStudyPlan = () => {
     setStudyPlanGenerated(true);
@@ -69,7 +61,7 @@ export default function ActiveTasksSection() {
         priority: newPriority,
       });
 
-      setTasks((prevTasks) => [response.data, ...prevTasks]);
+      setTasks((prevTasks) => [response.data.data, ...prevTasks]);
       setNewTitle("");
       setNewCourse("");
       setNewDueDate("");
@@ -124,7 +116,7 @@ export default function ActiveTasksSection() {
             aria-label="Notifications"
             onClick={fetchUpcomingTasks}
           >
-            <img className="h-5 w-4" src="/notification.svg" />
+            <img className="h-5 w-4" src="/notification.svg" alt="Notifications" />
           </button>
         </div>
       </header>

@@ -3,6 +3,7 @@ import dashboardIcon from "../public/dachboard.svg";
 import coursesIcon from "../public/courses.svg";
 import tasksIcon from "../public/tasks.svg";
 import aiPlanIcon from "../public/aiPlan.svg";
+import analyticsdIcon from "../public/analytics.svg"
 import settingIcon from "../public/setting.svg";
 import helpIcon from "../public/help.svg";
 
@@ -32,6 +33,11 @@ const primaryNavigation: NavigationItem[] = [
     label: "AI Study Plan",
     icon: aiPlanIcon,
     iconClassName: "w-[19.01px] h-5",
+  },
+  {
+    label: "Analytics", 
+    icon: analyticsdIcon, 
+    iconClassName: "w-[18px] h-[18px]",
   },
 ];
 
