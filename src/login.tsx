@@ -27,11 +27,11 @@ export default function LogIn({ onBackToLanding, onLoginSuccess, switchToRegiste
       });
 
       const token = response.data.data.token;
-
+      const user = response.data.data.user; 
       if (token) {
         // Save Token at localStorage
         localStorage.setItem('token', token);
-        
+        localStorage.setItem('user', JSON.stringify(user));
         onLoginSuccess(); 
       }
     } catch (err: any) {

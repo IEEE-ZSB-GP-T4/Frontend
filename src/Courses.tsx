@@ -3,9 +3,9 @@ import API from './axios';
 
 type Course = {
   id: string | number;
-  title: string;
+  name: string;
   instructor: string;
-  credits: number;
+  code: string;
   tasks_count?: number;
 };
 
@@ -13,12 +13,12 @@ export default function CourseManagementSection() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [studyPlanGenerated, setStudyPlanGenerated] = useState(false);
-  
+
   // Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
+  const [newName, setNewName] = useState("");
   const [newInstructor, setNewInstructor] = useState("");
-  const [newCredits, setNewCredits] = useState("");
+  const [newCode, setNewCode] = useState("");
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -38,7 +38,7 @@ export default function CourseManagementSection() {
   const handleGenerateStudyPlan = () => {
     setStudyPlanGenerated(true);
   };
-//API
+  //API
   const handleFetchUpcomingDeadlines = async () => {
     try {
       const response = await API.get("/tasks/upcoming-deadlines");
@@ -52,19 +52,20 @@ export default function CourseManagementSection() {
     e.preventDefault();
     try {
       await API.post('/courses', {
-        title: newTitle,
+        name: newName,
         instructor: newInstructor,
-        credits: Number(newCredits),
+        code: newCode,
       });
-      
+
       const response = await API.get('/courses');
       setCourses(response.data.data);
 
       setIsAddModalOpen(false);
-      setNewTitle("");
+      setNewName("");
       setNewInstructor("");
-      setNewCredits("");
-    } catch {
+      setNewCode("");
+    } catch (error) {
+      console.error("Failed to add course", error);
       alert("Failed to add course.");
     }
   };
@@ -81,7 +82,7 @@ export default function CourseManagementSection() {
 
   return (
     <main className="flex min-h-0 flex-1 flex-col items-start self-stretch bg-[#f8f9ff]">
-      
+
       <header className="relative z-[1] flex h-16 w-full shrink-0 items-center justify-end border-b border-[#c3c6d7] bg-[#f8f9ff] px-6 py-0 md:px-16">
         <div className="inline-flex items-center gap-4 md:gap-6">
           <button
@@ -109,7 +110,7 @@ export default function CourseManagementSection() {
 
       <section className="flex w-full flex-1 flex-col items-start overflow-auto p-6 md:p-16">
         <div className="flex w-full max-w-screen-xl flex-col items-start gap-10">
-          
+
           {/* Title & Add Button Section */}
           <div className="flex w-full flex-wrap items-center justify-between gap-4">
             <div className="flex flex-col items-start gap-2">
@@ -137,9 +138,9 @@ export default function CourseManagementSection() {
                 <article key={course.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start mb-4">
-                      <h2 className="text-xl font-semibold text-[#0b1c30]">{course.title}</h2>
-                      <button 
-                        onClick={() => handleDeleteCourse(course.id)} 
+                      <h2 className="text-xl font-semibold text-[#0b1c30]">{course.name}</h2>
+                      <button
+                        onClick={() => handleDeleteCourse(course.id)}
                         className="text-red-400 hover:text-red-600 text-sm font-medium"
                       >
                         Delete
@@ -148,7 +149,7 @@ export default function CourseManagementSection() {
                     <p className="text-gray-600 mb-4 text-sm">Instructor: {course.instructor}</p>
                   </div>
                   <div className="flex gap-4 text-xs font-semibold text-[#0A369D] pt-4 border-t border-gray-100">
-                    <span className="bg-[#e5eeff] px-2 py-1 rounded">{course.credits} Credits</span>
+                    <span className="bg-[#e5eeff] px-2 py-1 rounded">{course.code}</span>
                     <span className="bg-[#dbe1ff] px-2 py-1 rounded">{course.tasks_count || 0} Active Tasks</span>
                   </div>
                 </article>
@@ -164,38 +165,37 @@ export default function CourseManagementSection() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <form onSubmit={handleSaveNewCourse} className="bg-white p-8 rounded-xl w-full max-w-sm flex flex-col gap-4 shadow-xl">
             <h2 className="text-xl font-bold mb-2 text-[#0b1c30]">Add New Course</h2>
-            <input 
-              placeholder="Course Title (e.g. CS101)" 
-              className="border p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A369D]" 
-              value={newTitle} 
-              onChange={e => setNewTitle(e.target.value)} 
-              required 
+            <input
+              placeholder="Course Name (e.g. Data Structures)"
+              className="border p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A369D]"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              required
             />
-            <input 
-              placeholder="Instructor Name" 
-              className="border p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A369D]" 
-              value={newInstructor} 
-              onChange={e => setNewInstructor(e.target.value)} 
-              required 
+            <input
+              placeholder="Instructor Name"
+              className="border p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A369D]"
+              value={newInstructor}
+              onChange={e => setNewInstructor(e.target.value)}
+              required
             />
-            <input 
-              type="number" 
-              placeholder="Credits" 
-              className="border p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A369D]" 
-              value={newCredits} 
-              onChange={e => setNewCredits(e.target.value)} 
-              required 
+            <input
+              placeholder="Course Code (e.g. CS101)"
+              className="border p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A369D]"
+              value={newCode}
+              onChange={e => setNewCode(e.target.value)}
+              required
             />
             <div className="flex gap-2 justify-end mt-4">
-              <button 
-                type="button" 
-                onClick={() => setIsAddModalOpen(false)} 
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
                 className="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100 text-sm"
               >
                 Cancel
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="px-4 py-2 bg-[#0A369D] text-white rounded-lg hover:bg-[#004ac6] text-sm font-medium"
               >
                 Save

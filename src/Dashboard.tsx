@@ -7,6 +7,11 @@ export default function AcademicDashboardSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Read the logged-in user's info saved at login (see login.tsx / Register.tsx changes).
+  // This does NOT depend on the /dashboard endpoint, so the real name shows up
+  // even if the Data Science dashboard/analytics integration isn't ready yet.
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
   //Backend
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -145,7 +150,7 @@ export default function AcademicDashboardSection() {
               id="dashboard-title"
               className="m-0 flex items-center font-['Geist-Bold',Helvetica] text-4xl font-bold leading-[48px] tracking-[-0.96px] text-[#0b1c30] md:text-5xl md:leading-[56px]"
             >
-              Welcome Back, {dashboardData?.user_name || 'Alex'}!
+              Welcome Back, {storedUser?.name || 'Alex'}!
             </h1>
             <p className="m-0 flex items-center font-['Inter-Regular',Helvetica] text-lg font-normal leading-7 tracking-[0] text-[#434655]">
               Here&apos;s your academic overview for today.

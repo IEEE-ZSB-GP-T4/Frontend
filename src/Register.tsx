@@ -26,9 +26,11 @@ export default function Register({ onRegisterSuccess, switchToLogin }: RegisterP
       });
 
       const token = response.data.data.token;
-      
+      const user = response.data.data.user;
+
       if (token) {
         localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         onRegisterSuccess();
       }
     } catch (err: any) {
