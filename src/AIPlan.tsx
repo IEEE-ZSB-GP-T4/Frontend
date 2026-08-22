@@ -16,18 +16,46 @@ type DayPlan = {
   sessions: Session[];
 };
 
+type ChecklistTask = {
+  id: string | number;
+  title: string;
+  deadline?: string;
+  priority?: string;
+  status?: string;
+};
+
+type ChecklistCourse = {
+  id: string | number;
+  name: string;
+  code: string;
+  tasks: ChecklistTask[];
+};
+
 export default function AIStudyPlanSection() {
 
- const [availableHours, setAvailableHours] = useState<number>(4);
-  const [optimizationFocus, setOptimizationFocus] = useState("Balanced Concept Review");
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([
-    "Data Structures (CS101)",
-    "Calculus II (MAT202)",
-  ]);
-  
-  
+  const [availableHours, setAvailableHours] = useState<number>(4);
+
+  // Courses + their incomplete tasks, fetched from /study-plan/tasks
+  const [courses, setCourses] = useState<ChecklistCourse[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<(string | number)[]>([]);
+
   const [studyPlanDays, setStudyPlanDays] = useState<DayPlan[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchChecklist = async () => {
+      try {
+        const response = await API.get('/study-plan/tasks');
+        setCourses(response.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch study plan checklist", error);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    fetchChecklist();
+  }, []);
 
   useEffect(() => {
     const fetchStudyPlan = async () => {
@@ -43,30 +71,39 @@ export default function AIStudyPlanSection() {
     fetchStudyPlan();
   }, []);
 
-  const toggleCourse = (course: string) => {
-    setSelectedCourses((prev) =>
-      prev.includes(course)
-        ? prev.filter((c) => c !== course)
-        : [...prev, course]
+  const toggleTask = (taskId: string | number) => {
+    setSelectedTaskIds((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId]
     );
   };
 
   const handleGenerateSchedule = async () => {
+    if (selectedTaskIds.length === 0) {
+      alert("Please select at least one task.");
+      return;
+    }
+
     setLoading(true);
     try {
+      // StoreStudyPlanRequest only validates available_hours + task_ids.
       const response = await API.post('/study-plan', {
         available_hours: Number(availableHours),
-        optimization_focus: optimizationFocus, 
-        selected_courses: selectedCourses,     
+        task_ids: selectedTaskIds,
       });
 
       if (response.data && response.data.data && response.data.data.generated_plan) {
         setStudyPlanDays(response.data.data.generated_plan.days || []);
       }
       alert("AI Schedule generated successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating schedule:", error);
-      alert("Failed to generate AI schedule.");
+      const validationErrors = error?.response?.data?.data;
+      if (validationErrors) {
+        console.error("Validation errors:", validationErrors);
+      }
+      alert("Failed to generate AI schedule. Check console for details.");
     } finally {
       setLoading(false);
     }
@@ -80,10 +117,29 @@ export default function AIStudyPlanSection() {
     }
   };
 
+  // Format "2026-08-20" -> "Thursday, Aug 20" (same treatment as Tasks.tsx)
+  const formatDayLabel = (dateStr?: string) => {
+    if (!dateStr) return null;
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) return dateStr;
+    return parsed.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatDeadline = (dateStr?: string) => {
+    if (!dateStr) return null;
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) return null;
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   return (
     <div className="flex w-full flex-1 flex-col items-start overflow-auto p-6 md:p-16 bg-[#f8f9ff]">
       <div className="flex w-full max-w-screen-xl flex-col items-start gap-10">
-        
+
         {/* Title & Description */}
         <div className="flex w-full flex-col items-start gap-2">
           <h1 className="m-0 font-['Geist-Bold',Helvetica] text-4xl font-bold leading-[48px] tracking-[-0.96px] text-[#0b1c30] md:text-5xl md:leading-[56px]">
@@ -96,7 +152,7 @@ export default function AIStudyPlanSection() {
 
         {/* Grid Layout: Parameters & Today's Optimized Plan */}
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-3">
-          
+
           {/* Parameters Sidebar */}
           <div className="flex flex-col items-start gap-6 rounded-xl border border-[#c3c6d7] bg-white p-6 lg:col-span-1 shadow-sm">
             <div className="flex items-center gap-2">
@@ -128,54 +184,60 @@ export default function AIStudyPlanSection() {
               </div>
             </div>
 
-            {/* Priority Courses */}
+            {/* Tasks checklist, grouped by course - from /study-plan/tasks */}
             <div className="flex w-full flex-col items-start gap-3">
               <span className="font-['Geist-Medium',Helvetica] text-sm text-[#0b1c30]">
-                Priority Courses (Select up to 3)
+                Select Tasks to Plan For
               </span>
-              <div className="flex w-full flex-col gap-2">
-                {[
-                  "Data Structures (CS101)",
-                  "Calculus II (MAT202)",
-                  "Physics 1 (PHY101)",
-                  "Modern History (HIS300)",
-                ].map((course) => {
-                  const isSelected = selectedCourses.includes(course);
-                  return (
-                    <button
-                      key={course}
-                      type="button"
-                      onClick={() => toggleCourse(course)}
-                      className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left font-['Inter-Medium',Helvetica] text-sm transition-colors ${
-                        isSelected
-                          ? "border-[#004ac6] bg-[#e5eeff] text-[#004ac6]"
-                          : "border-[#c3c6d7] bg-[#f8f9ff] text-[#434655]"
-                      }`}
-                    >
-                      <span>{course}</span>
-                      <span className={`flex h-4 w-4 items-center justify-center rounded border ${isSelected ? "border-[#004ac6] bg-[#004ac6] text-white" : "border-[#c3c6d7]"}`}>
-                        {isSelected && "✓"}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Optimization Focus */}
-            <div className="flex w-full flex-col items-start gap-2">
-              <span className="font-['Geist-Medium',Helvetica] text-sm text-[#0b1c30]">
-                Optimization Focus
-              </span>
-              <select 
-                value={optimizationFocus}
-                onChange={(e) => setOptimizationFocus(e.target.value)}
-                className="w-full rounded-lg border border-[#c3c6d7] bg-[#f8f9ff] px-3 py-2.5 font-['Inter-Regular',Helvetica] text-sm text-[#0b1c30] focus:border-[#004ac6] focus:outline-none"
-              >
-                <option>Balanced Concept Review</option>
-                <option>Exam Cram & Practice</option>
-                <option>Deep Technical Focus</option>
-              </select>
+              {coursesLoading ? (
+                <div className="text-sm text-gray-500 py-2">Loading your tasks...</div>
+              ) : courses.length === 0 ? (
+                <div className="text-sm text-gray-500 py-2">No courses found yet.</div>
+              ) : (
+                <div className="flex w-full flex-col gap-4">
+                  {courses.map((course) => (
+                    <div key={course.id} className="flex w-full flex-col gap-2">
+                      <span className="font-['Geist-Medium',Helvetica] text-xs font-semibold uppercase tracking-wide text-[#434655]">
+                        {course.name} ({course.code})
+                      </span>
+
+                      {course.tasks.length === 0 ? (
+                        <span className="text-xs text-gray-400 pl-1">No pending tasks</span>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          {course.tasks.map((task) => {
+                            const isSelected = selectedTaskIds.includes(task.id);
+                            const deadlineLabel = formatDeadline(task.deadline);
+                            return (
+                              <button
+                                key={task.id}
+                                type="button"
+                                onClick={() => toggleTask(task.id)}
+                                className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left font-['Inter-Medium',Helvetica] text-sm transition-colors ${
+                                  isSelected
+                                    ? "border-[#004ac6] bg-[#e5eeff] text-[#004ac6]"
+                                    : "border-[#c3c6d7] bg-[#f8f9ff] text-[#434655]"
+                                }`}
+                              >
+                                <span className="flex flex-col items-start">
+                                  <span>{task.title}</span>
+                                  {deadlineLabel && (
+                                    <span className="text-xs opacity-70">Due {deadlineLabel}</span>
+                                  )}
+                                </span>
+                                <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isSelected ? "border-[#004ac6] bg-[#004ac6] text-white" : "border-[#c3c6d7]"}`}>
+                                  {isSelected && "✓"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Generate Button */}
@@ -184,7 +246,7 @@ export default function AIStudyPlanSection() {
               onClick={handleGenerateSchedule}
               disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0A369D] px-4 py-3 font-['Geist-Medium',Helvetica] text-sm font-medium text-white transition-colors hover:bg-[#004ac6] focus:outline-none focus:ring-2 focus:ring-[#0053db] focus:ring-offset-2 disabled:opacity-50"
-            > 
+            >
               <img src="/generateAi.svg" className="h-5 w-5 brightness-0 invert" alt="" />
               <span>{loading ? "Generating..." : "Generate AI Schedule"}</span>
             </button>
@@ -214,12 +276,12 @@ export default function AIStudyPlanSection() {
             {/* Schedule Timeline based on days and sessions */}
             <div className="flex w-full flex-col gap-6">
               {studyPlanDays.length === 0 ? (
-                <div className="p-6 text-center text-gray-500 text-sm w-full">No study plan generated yet. Click generate above.</div>
+                <div className="p-6 text-center text-gray-500 text-sm w-full">No study plan generated yet. Select tasks and click generate above.</div>
               ) : (
                 studyPlanDays.map((dayItem, dIndex) => (
                   <div key={dIndex} className="flex flex-col gap-4 w-full border-b pb-4 last:border-b-0">
                     <h3 className="font-['Geist-SemiBold',Helvetica] text-lg font-bold text-[#004ac6]">
-                      {dayItem.date || `Day ${dIndex + 1}`}
+                      {formatDayLabel(dayItem.date) || `Day ${dIndex + 1}`}
                     </h3>
                     <div className="flex w-full flex-col gap-4 border-l-2 border-[#d3e4fe] pl-4 ml-2">
                       {dayItem.sessions && dayItem.sessions.map((session, sIndex) => (

@@ -1,9 +1,34 @@
 import { useState, useEffect } from "react";
 import API from './axios';
 
+type BackendTask = {
+  id: string | number;
+  title: string;
+  deadline: string;
+  priority?: string;
+  status?: string;
+  course?: {
+    id: string | number;
+    name: string;
+    code?: string;
+  } | null;
+};
+
+type DashboardResponse = {
+  summary: {
+    total_courses: number;
+    pending_tasks: number;
+    study_hours_this_week: number;
+  };
+  upcoming_deadlines: BackendTask[];
+  ai_insight: {
+    message: string;
+  };
+};
+
 export default function AcademicDashboardSection() {
   const [studyPlanGenerated, setStudyPlanGenerated] = useState(false);
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -17,6 +42,8 @@ export default function AcademicDashboardSection() {
     const fetchDashboard = async () => {
       try {
         const response = await API.get('/dashboard');
+        // DashboardController returns { summary: {...}, upcoming_deadlines: [...], ai_insight: {...} }
+        // nested under response.data.data
         setDashboardData(response.data.data);
         setLoading(false);
       } catch (err: any) {
@@ -28,83 +55,82 @@ export default function AcademicDashboardSection() {
     fetchDashboard();
   }, []);
 
-  
+
   if (loading) return <div className="flex h-screen items-center justify-center font-['Geist-Medium',Helvetica] text-lg">Loading...</div>;
-  
+
   if (error) return <div className="flex h-screen items-center justify-center font-['Geist-Medium',Helvetica] text-lg text-red-500">{error}</div>;
+
+  const summary = dashboardData?.summary;
 
   const summaryCards = [
     {
       label: "Total Courses",
-      value: dashboardData?.total_courses ?? 0,
+      value: summary?.total_courses ?? 0,
       icon: (
-        <img 
-          className="w-5 h-5" 
-          style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(85%) saturate(2400%) hue-rotate(210deg)" }} 
-          src="/courses.svg" 
-          alt="Courses" 
+        <img
+          className="w-5 h-5"
+          style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(85%) saturate(2400%) hue-rotate(210deg)" }}
+          src="/courses.svg"
+          alt="Courses"
         />
       ),
     },
     {
       label: "Pending Tasks",
-      value: dashboardData?.pending_tasks ?? 0 ,
+      value: summary?.pending_tasks ?? 0,
       icon: (
-        <img 
-          className="w-5 h-5" 
-          style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(85%) saturate(2400%) hue-rotate(210deg)" }} 
-          src="/tasks.svg" 
-          alt="Tasks" 
+        <img
+          className="w-5 h-5"
+          style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(85%) saturate(2400%) hue-rotate(210deg)" }}
+          src="/tasks.svg"
+          alt="Tasks"
         />
       ),
     },
     {
       label: "Study Hours",
-      value: dashboardData?.study_hours ?? 0,
+      value: summary?.study_hours_this_week ?? 0,
       detail: "This week",
       icon: (
-        <img 
-          className="w-5 h-5" 
-          style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(85%) saturate(2400%) hue-rotate(210deg)" }} 
-          src="/hours.svg" 
-          alt="Study Hours" 
+        <img
+          className="w-5 h-5"
+          style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(85%) saturate(2400%) hue-rotate(210deg)" }}
+          src="/hours.svg"
+          alt="Study Hours"
         />
       ),
     },
   ];
 
-  const deadlines = [
-    {
-      title: "Intro to Psychology - Quiz",
-      due: "Due: Oct 12",
-      status: "Urgent",
-      icon: <img src="/urgent.svg" className="w-5 h-5" alt="Urgent" />,
-      iconClassName: "w-[18px] h-5",
-      iconBackground: "bg-[#ffdad6]",
-      statusBackground: "bg-[#ffdad6]",
-      statusColor: "text-[#ba1a1a]",
-    },
-    {
-      title: "Advanced Calculus - Problem Set",
-      due: "Due: Oct 15",
-      status: "Pending",
-      icon: <img src="/problem.svg" className="w-5 h-5" alt="Pending" />,
-      iconClassName: "w-[18px] h-5",
-      iconBackground: "bg-[#d3e4fe]",
-      statusBackground: "bg-[#e0e3e5]",
-      statusColor: "text-[#626567]",
-    },
-    {
-      title: "Modern History - Essay",
-      due: "Due: Oct 18",
-      status: "Pending",
-      icon: <img src="/essay.svg" className="w-5 h-5" alt="Pending" />,
-      iconClassName: "w-[19px] h-5",
-      iconBackground: "bg-[#d3e4fe]",
-      statusBackground: "bg-[#e0e3e5]",
-      statusColor: "text-[#626567]",
-    },
-  ];
+  // Turn the real upcoming tasks into the same card shape the UI expects.
+  // A task counts as "Urgent" if its deadline is within the next 2 days.
+  const rawDeadlines = dashboardData?.upcoming_deadlines ?? [];
+
+  const deadlines = rawDeadlines.map((task) => {
+    const deadlineDate = new Date(task.deadline);
+    const now = new Date();
+    const msUntilDue = deadlineDate.getTime() - now.getTime();
+    const daysUntilDue = msUntilDue / (1000 * 60 * 60 * 24);
+    const isUrgent = daysUntilDue <= 2;
+
+    const formattedDate = deadlineDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+
+    return {
+      id: task.id,
+      title: task.course?.name ? `${task.course.name} - ${task.title}` : task.title,
+      due: `Due: ${formattedDate}`,
+      status: isUrgent ? "Urgent" : "Pending",
+      icon: isUrgent
+        ? <img src="/urgent.svg" className="w-5 h-5" alt="Urgent" />
+        : <img src="/problem.svg" className="w-5 h-5" alt="Pending" />,
+      iconBackground: isUrgent ? "bg-[#ffdad6]" : "bg-[#d3e4fe]",
+      statusBackground: isUrgent ? "bg-[#ffdad6]" : "bg-[#e0e3e5]",
+      statusColor: isUrgent ? "text-[#ba1a1a]" : "text-[#626567]",
+    };
+  });
 
   const handleGenerateStudyPlan = () => {
     setStudyPlanGenerated(true);
@@ -156,7 +182,7 @@ export default function AcademicDashboardSection() {
               Here&apos;s your academic overview for today.
             </p>
           </section>
-          
+
           <section
             aria-label="Academic summary"
             className="grid w-full grid-cols-1 gap-6 sm:grid-cols-3"
@@ -209,38 +235,44 @@ export default function AcademicDashboardSection() {
                 </button>
               </div>
               <div className="w-full overflow-hidden rounded-xl border border-[#c3c6d7] bg-white">
-                {deadlines.map((deadline, index) => (
-                  <article
-                    key={deadline.title}
-                    className={`flex w-full items-center justify-between gap-4 p-4 sm:p-6 ${
-                      index > 0 ? "border-t border-[#c3c6d7]" : ""
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-center gap-4 sm:gap-6">
-                      <div
-                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${deadline.iconBackground}`}
-                      >
-                        {deadline.icon}
-                      </div>
-                      <div className="flex min-w-0 flex-col items-start gap-1">
-                        <h3 className="m-0 truncate font-['Inter-SemiBold',Helvetica] text-base font-semibold leading-6 tracking-[0] text-[#0b1c30]">
-                          {deadline.title}
-                        </h3>
-                        <p className="m-0 font-['Geist-SemiBold',Helvetica] text-xs font-semibold leading-4 tracking-[0.6px] text-[#434655]">
-                          {deadline.due}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 font-['Inter-Medium',Helvetica] text-xs font-medium leading-4 tracking-[0] ${deadline.statusBackground} ${deadline.statusColor}`}
+                {deadlines.length === 0 ? (
+                  <div className="p-6 text-center text-gray-500 text-sm">
+                    No upcoming deadlines. You&apos;re all caught up!
+                  </div>
+                ) : (
+                  deadlines.map((deadline, index) => (
+                    <article
+                      key={deadline.id}
+                      className={`flex w-full items-center justify-between gap-4 p-4 sm:p-6 ${
+                        index > 0 ? "border-t border-[#c3c6d7]" : ""
+                      }`}
                     >
-                      {deadline.status}
-                    </span>
-                  </article>
-                ))}
+                      <div className="flex min-w-0 items-center gap-4 sm:gap-6">
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${deadline.iconBackground}`}
+                        >
+                          {deadline.icon}
+                        </div>
+                        <div className="flex min-w-0 flex-col items-start gap-1">
+                          <h3 className="m-0 truncate font-['Inter-SemiBold',Helvetica] text-base font-semibold leading-6 tracking-[0] text-[#0b1c30]">
+                            {deadline.title}
+                          </h3>
+                          <p className="m-0 font-['Geist-SemiBold',Helvetica] text-xs font-semibold leading-4 tracking-[0.6px] text-[#434655]">
+                            {deadline.due}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-0.5 font-['Inter-Medium',Helvetica] text-xs font-medium leading-4 tracking-[0] ${deadline.statusBackground} ${deadline.statusColor}`}
+                      >
+                        {deadline.status}
+                      </span>
+                    </article>
+                  ))
+                )}
               </div>
             </section>
-            
+
             <aside
               aria-labelledby="insights-title"
               className="relative flex min-h-[344px] flex-col justify-between overflow-hidden rounded-xl border border-blue-600 bg-white p-8 shadow-[0px_12px_32px_#2563eb0d] sm:p-10"
@@ -257,9 +289,8 @@ export default function AcademicDashboardSection() {
                   </h2>
                 </div>
                 <p className="m-0 font-['Inter-Regular',Helvetica] text-base font-normal leading-6 tracking-[0] text-[#434655]">
-                  Your study patterns indicate a heavy load next week. Let
-                  Planly generate an optimized study schedule to ensure
-                  you&apos;re prepared for all upcoming deadlines.
+                  {dashboardData?.ai_insight?.message ||
+                    "Your study patterns indicate a heavy load next week. Let Planly generate an optimized study schedule to ensure you're prepared for all upcoming deadlines."}
                 </p>
               </div>
               <button

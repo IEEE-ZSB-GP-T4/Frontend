@@ -220,7 +220,9 @@ export default function ActiveTasksSection() {
                     </div>
 
                     <div className="text-sm text-[#434655]">
-                      <span>{task.deadline}</span>
+                      <span>{new Date(task.deadline).toLocaleDateString('en-US', { 
+                       weekday: 'long', month: 'short', day: 'numeric' 
+                          })}</span>
                     </div>
 
                     <div>
